@@ -1,4 +1,5 @@
 #include "String.h"
+#include <iostream>
 #include <cstring>
 
 int String::objectCount = 0;
@@ -18,26 +19,41 @@ String::String(const char* str) : String(strlen(str))
     strcpy_s(data, size + 1, str);
 }
 
-String::String(const String& other)
+String::String(String&& other) noexcept
 {
+    data = other.data;
     size = other.size;
-    data = new char[size + 1];
-    strcpy_s(data, size + 1, other.data);
+
+    other.data = nullptr;
+    other.size = 0;
+
     objectCount++;
 }
 
-String& String::operator=(const String& other)
+String& String::operator=(String&& other) noexcept
 {
-    if (this == &other)
-        return *this;
+    if (this != &other)
+    {
+        delete[] data;
 
-    delete[] data;
+        data = other.data;
+        size = other.size;
 
-    size = other.size;
-    data = new char[size + 1];
-    strcpy_s(data, size + 1, other.data);
+        other.data = nullptr;
+        other.size = 0;
+    }
 
     return *this;
+}
+
+char& String::operator[](size_t index)
+{
+    return data[index];
+}
+
+const char& String::operator[](size_t index) const
+{
+    return data[index];
 }
 
 String::~String()
@@ -54,48 +70,6 @@ void String::input()
 void String::output() const
 {
     std::cout << data << std::endl;
-}
-
-size_t String::getSize() const
-{
-    return size;
-}
-
-const char* String::getData() const
-{
-    return data;
-}
-
-String String::operator+(const String& other) const
-{
-    String result(size + other.size);
-
-    strcpy_s(result.data, result.size + 1, data);
-    strcat_s(result.data, result.size + 1, other.data);
-
-    return result;
-}
-
-bool String::operator==(const String& other) const
-{
-    return strcmp(data, other.data) == 0;
-}
-
-bool String::operator!=(const String& other) const
-{
-    return !(*this == other);
-}
-
-std::ostream& operator<<(std::ostream& os, const String& str)
-{
-    os << str.data;
-    return os;
-}
-
-std::istream& operator>>(std::istream& is, String& str)
-{
-    is.getline(str.data, str.size + 1);
-    return is;
 }
 
 int String::getObjectCount()
